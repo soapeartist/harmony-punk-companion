@@ -7,21 +7,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmony Punk Companion</title>
     <style>
-        main {
-            margin: 0 auto;
+        html,
+        body {
+            margin: 0;
         }
 
+        main {
+            margin: 0 auto;
+            line-height: 2em;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #input,
         #outputview {
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
+        #welcome>*,
         #input>*,
         main>* {
             margin: 0 auto;
             text-align: center;
-            margin-bottom: 150px;
+        }
+
+
+        #welcome>*:not(:last-child),
+        #input>*:not(:last-child),
+        main>*:not(:last-child) {
+            margin-bottom: 100px;
+        }
+
+        #welcome {
+            /* min-height: 100vh; */
+            box-sizing: border-box;
+            
+            padding: 40px;
         }
 
         .row {
@@ -32,7 +58,7 @@
         }
 
         #waiting {
-            height: 100vh;
+            /* height: 100vh; */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -74,8 +100,8 @@
 
         button {
             display: block;
-            font-size: 2rem;
-            padding: 30px 200px;
+            font-size: 1rem;
+            padding: 20px 30px;
             cursor: pointer;
             background-color: #00AEE9;
             color: white;
@@ -141,9 +167,23 @@
 
 <body>
     <main>
-        <h2>Do you want to combine your Harmony Punk Companion with your Harmony Punk?</h2>
-        <p class="info">Note: This is not an NFT. It's just an image that combines your companion and punk to showcase
-            it!</p>
+
+        <div id="welcome">
+            <h2>Do you want to combine your Harmony Punk Companion with your Harmony Punk?</h2>
+            <div class="info">
+                A little art project, that combines your Harmony Punk and a Harmony Punk Companion into a single image
+                to use as Avatar.
+
+                <b>This does not create a new NFT! You must own these NFTs or you potentially violate legal rights of
+                    the
+                    rightful owner(s)!
+            </div></b>
+
+            <button onclick="aggree()">Understood!</button>
+        </div>
+
+        </div>
+
 
         <div id="input">
             <div class="row">
@@ -164,11 +204,12 @@
         <div id="waiting">
 
             <div id="outputview">
+
+                <h3>Image Processing Completed!</h3>
+                <p>Click the image to download.</p>
                 <div id="outputframe" class="frame" style="height: 500px; width: 500px;">
                     <canvas id="output" onClick="download()"></canvas>
                 </div>
-
-                <p>Click image do download!</p>
             </div>
             <a id="blah" href="https://davinci.gallery/view/0x6ae2fb58e1ab50a1c0c4f809c88954afc2561282" target="_blank">
                 <img width="512px"
@@ -195,8 +236,9 @@
 
     <script>
 
-        const timeout = 3000
+        const timeout = 5000
 
+        input.style.display = "none"
         waiting.style.display = "none"
         outputview.style.display = "none"
 
@@ -233,6 +275,11 @@
             link.download = 'punk-pals.png';
             link.href = document.getElementById('output').toDataURL()
             link.click();
+        }
+
+        function aggree(){
+            input.style.display = "block"
+            welcome.style.display = "none"
         }
 
 
