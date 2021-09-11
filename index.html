@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Punk Companion</title>
+    <style>
+        main {
+            margin: 0 auto;
+        }
+
+        #outputview {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #input>*,
+        main>* {
+            margin: 0 auto;
+            text-align: center;
+            margin-bottom: 150px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+        }
+
+        #waiting {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h2 {
+            /* font-size: 3em; */
+            font-weight: bold;
+            margin-top: 10vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-weight: normal;
+        }
+
+        body {
+            background-color: rgb(233, 233, 233);
+            font-size: 1.5rem;
+            height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .frame {
+            display: inline-block;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 50%;
+        }
+
+
+        canvas {
+            /* background-color: white; */
+            height: 500px;
+            width: 500px;
+        }
+
+        button {
+            display: block;
+            font-size: 2rem;
+            padding: 30px 200px;
+            cursor: pointer;
+            background-color: #00AEE9;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: bold;
+            border: 2px solid white;
+            border-radius: 10px;
+
+            transition: background-color 0.2s;
+        }
+
+
+
+        button:hover {
+            background-color: #1B295E;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            background-color: gray;
+        }
+
+
+
+        .dropzone {
+            margin: unset auto;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            width: 400px;
+            height: 400px;
+            background-color: white;
+            cursor: pointer;
+
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+
+            border: 10px solid #00AEE9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropzone canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .dropzone:hover {
+            background-color: rgb(245, 245, 245);
+        }
+
+        input[type=file] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h2>Do you want to combine your Harmony Punk Companion with your Harmony Punk?</h2>
+        <p class="info">Note: This is not an NFT. It's just an image that combines your companion and punk to showcase
+            it!</p>
+
+        <div id="input">
+            <div class="row">
+                <label for="punkLoader" class="dropzone">
+                    <canvas></canvas>
+                    <span>Click to select your punk image...</span>
+                    <input type="file" id="punkLoader">
+                </label>
+
+                <label for="catLoader" class="dropzone">
+                    <canvas></canvas>
+                    <span>Click to select your companion image...</span>
+                    <input type="file" id="catLoader">
+                </label>
+            </div>
+            <p><b>Make sure to get the 1200x1200px images from the website. Otherwise your result may be bad!</b></p>
+        </div>
+        <div id="waiting">
+
+            <div id="outputview">
+                <div id="outputframe" class="frame" style="height: 500px; width: 500px;">
+                    <canvas id="output" onClick="download()"></canvas>
+                </div>
+
+                <p>Click image do download!</p>
+            </div>
+            <a id="blah" href="https://davinci.gallery/view/0x6ae2fb58e1ab50a1c0c4f809c88954afc2561282" target="_blank">
+                <img width="512px"
+                    src="https://davinci.gallery/uploads/artwork/QmbDXM3boGBvwZEssmH2RX8JqJXUWR6cHkP494AvAyTjoe" alt="">
+            </a>
+            <p>
+                While waiting please consider to tip me some $ONE:<br>
+                0x2FfC6A1C5F739Ca2443D47570B72055cf6F9de38
+            </p>
+            <p>
+                Or support me by buying one of my <b>awesome</b> NFTs on daVinci:<br>
+                <a href="https://davinci.gallery/artist/SOAPE" target="_blank"
+                    rel="noopener noreferrer">https://davinci.gallery/artist/SOAPE</a>
+            </p>
+
+            <b>THANK YOU FOR YOUR SUPPORT!</b><br>
+            <b>YOUR SOAPÉ</b>
+
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        const timeout = 3000
+
+        waiting.style.display = "none"
+        outputview.style.display = "none"
+
+        const size = 1200
+
+        let punkLoaded = false
+        let catLoaded = false
+
+
+        let catImage
+        let punkImage
+
+        /**
+         * Image uploading
+         */
+
+        punkLoader.addEventListener("change", (e) => {
+            uploadImage(e).then((img) => {
+                punkImage = img
+                punkLoaded = true
+                start()
+            }).catch(console.error)
+        })
+        catLoader.addEventListener("change", (e) => {
+            uploadImage(e).then((img) => {
+                catImage = img
+                catLoaded = true
+                start()
+            }).catch(console.error)
+        })
+
+        function download() {
+            var link = document.createElement('a');
+            link.download = 'punk-pals.png';
+            link.href = document.getElementById('output').toDataURL()
+            link.click();
+        }
+
+
+        function uploadImage(fileEvent) {
+            return new Promise((resolve) => {
+                let target = fileEvent.target
+                let dz = target.closest(".dropzone")
+                let canvas = dz.querySelector("canvas")
+                let ctx = canvas.getContext("2d")
+                let span = dz.querySelector("span")
+
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    var img = new Image();
+                    img.onload = function () {
+                        console.log(img.width)
+                        canvas.width = size;
+                        canvas.height = size;
+                        ctx.drawImage(img, 0, 0);
+                        span.style.display = "none"
+                        resolve(img)
+                    }
+                    img.src = event.target.result;
+                }
+                reader.readAsDataURL(fileEvent.target.files[0]);
+
+            })
+        }
+
+        /**
+         *  Image Transformation
+         */
+
+        const outputCtx = output.getContext("2d")
+        let maskImage = new Image()
+        let maskLoaded = false
+        maskImage.onload = function () {
+            maskLoaded = true
+            start()
+        }
+        maskImage.src = "mask.png"
+
+
+
+
+        async function start() {
+
+            if (maskLoaded && catLoaded && punkLoaded) {
+
+                input.style.display = "none"
+                waiting.style.display = "block"
+
+                setTimeout(function () {
+                    blah.style.display = "none"
+                    outputview.style.display = "flex"
+                }, timeout)
+
+                let cat = await drawMaskedImage(catImage, maskImage, output)
+                let punk = await drawMaskedImage(punkImage, maskImage, output)
+
+                output.width = size
+                output.height = size
+                ctx = output.getContext("2d")
+                const catSize = 0.55
+                const punkSize = 1
+
+
+                ctx.drawImage(maskImage, 0, 0)
+                ctx.drawImage(punk, 0, 80, size, size, 230, 0, size * punkSize, size * punkSize)
+                ctx.drawImage(cat, 50, 0, size, size, 87, 460, size * catSize, size * catSize)
+                ctx.beginPath()
+                ctx.rect(0, size - 80, size, size)
+                ctx.fillStyle = "white"
+                ctx.fill()
+
+            }
+        }
+
+
+
+        function drawMaskedImage(img, mask, { scale = 1, x = 0, y = 0 } = {}) {
+            return new Promise(resolve => {
+
+                let canvasNames = ["cat", "mask", "diff", "res"]
+                canvasMap = {}
+
+                canvasNames.forEach(name => {
+                    canvas = document.createElement("canvas")
+                    // document.body.appendChild(canvas)
+                    canvas.width = size
+                    canvas.height = size
+
+                    canvasMap[name] = {
+                        canvas,
+                        ctx: canvas.getContext("2d")
+                    }
+                })
+
+                canvasMap["cat"].ctx.drawImage(img, 0, 0)
+                canvasMap["mask"].ctx.drawImage(mask, 0, 0)
+
+
+                let catData = canvasMap["cat"].ctx.getImageData(0, 0, size, size)
+
+
+                let diffData = canvasMap["diff"].ctx.createImageData(size, size)
+                for (let i = 0; i < diffData.data.length; i += 4) {
+                    let gray = (catData.data[i + 1] + catData.data[i + 2] + catData.data[i + 3]) / 3
+                    let col = (gray < 200) ? 0 : 255
+                    diffData.data[i + 1] = catData.data[i + 1]
+
+                    diffData.data[i + 0] = col
+                    diffData.data[i + 1] = col
+                    diffData.data[i + 2] = col
+
+                    diffData.data[i + 3] = 255
+                }
+                canvasMap["diff"].ctx.putImageData(diffData, 0, 0)
+
+
+                let resData = canvasMap["res"].ctx.createImageData(size, size)
+                for (let i = 0; i < resData.data.length; i += 4) {
+
+                    if (diffData.data[i] < 80) {
+                        resData.data[i + 0] = catData.data[i + 0]
+                        resData.data[i + 1] = catData.data[i + 1]
+                        resData.data[i + 2] = catData.data[i + 2]
+                        resData.data[i + 3] = 255
+
+                    } else {
+                        resData.data[i + 0] = 0
+                        resData.data[i + 1] = 0
+                        resData.data[i + 2] = 0
+                        resData.data[i + 3] = 0
+                    }
+
+                }
+
+                canvasMap["res"].ctx.putImageData(resData, 0, 0)
+
+
+                let catMaskedImage = new Image()
+                catMaskedImage.onload = function () {
+                    resolve(catMaskedImage)
+                }
+                catMaskedImage.src = canvasMap["res"].canvas.toDataURL()
+
+            })
+
+        }
+
+
+    </script>
+</body>
+
+</html>
