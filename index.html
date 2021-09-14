@@ -196,17 +196,22 @@
 
         <div id="input">
             <div class="row">
-                <label for="punkLoader" class="dropzone">
-                    <canvas></canvas>
-                    <span>Click to select your punk image...</span>
-                    <input type="file" id="punkLoader">
-                </label>
+                <div id="punkWrapper">
+                    <label for="punkLoader" class="dropzone">
+                        <canvas></canvas>
+                        <span>Click to select your punk image...</span>
+                        <input type="file" id="punkLoader">
+                    </label>
+                </div>
 
-                <label for="catLoader" class="dropzone">
-                    <canvas></canvas>
-                    <span>Click to select your companion image...</span>
-                    <input type="file" id="catLoader">
-                </label>
+
+                <div id="catWrapper">
+                    <label for="catLoader" class="dropzone">
+                        <canvas></canvas>
+                        <span>Click to select your companion image...</span>
+                        <input type="file" id="catLoader">
+                    </label>
+                </div>
             </div>
             <p><b>Make sure to get the 1200x1200px images from the website. Otherwise your result may be bad!</b></p>
         </div>
@@ -245,18 +250,28 @@
 
     <script>
 
+        const debug = false
+
         const timeout = 5000
 
-        input.style.display = "none"
-        waiting.style.display = "none"
-        outputview.style.display = "none"
+        if (debug) {
+            welcome.style.display = "none"
+            input.style.display = "block"
+            waiting.style.display = "none"
+        } else {
+
+            input.style.display = "none"
+            waiting.style.display = "none"
+            outputview.style.display = "none"
+        }
+
 
         const size = 1200
 
-        let punkLoaded = false
-        let catLoaded = false
 
 
+        let cat
+        let punk
         let catImage
         let punkImage
 
@@ -265,16 +280,16 @@
          */
 
         punkLoader.addEventListener("change", (e) => {
-            uploadImage(e).then((img) => {
+            uploadImage(e).then(async (img) => {
                 punkImage = img
-                punkLoaded = true
+                punk = await drawMaskedImage(punkImage, maskImage, output, punkWrapper)
                 start()
             }).catch(console.error)
         })
         catLoader.addEventListener("change", (e) => {
-            uploadImage(e).then((img) => {
+            uploadImage(e).then(async (img) => {
                 catImage = img
-                catLoaded = true
+                cat = await drawMaskedImage(catImage, maskImage, output, catWrapper)
                 start()
             }).catch(console.error)
         })
@@ -336,40 +351,44 @@
 
         async function start() {
 
-            if (maskLoaded && catLoaded && punkLoaded) {
+            if (maskLoaded) {
 
-                input.style.display = "none"
-                waiting.style.display = "block"
+                if (cat && punk) {
+                    if (debug) {
+                        output = document.createElement("canvas")
+                        input.appendChild(output)
+                    } else {
+                        input.style.display = "none"
+                        waiting.style.display = "block"
 
-                setTimeout(function () {
-                    blah.style.display = "none"
-                    outputview.style.display = "flex"
-                }, timeout)
+                        setTimeout(function () {
+                            blah.style.display = "none"
+                            outputview.style.display = "flex"
+                        }, timeout)
+                    }
 
-                let cat = await drawMaskedImage(catImage, maskImage, output)
-                let punk = await drawMaskedImage(punkImage, maskImage, output)
-
-                output.width = size
-                output.height = size
-                ctx = output.getContext("2d")
-                const catSize = 0.55
-                const punkSize = 1
+                    output.width = size
+                    output.height = size
+                    ctx = output.getContext("2d")
+                    const catSize = 0.55
+                    const punkSize = 1
 
 
-                ctx.drawImage(maskImage, 0, 0)
-                ctx.drawImage(punk, 0, 80, size, size, 230, 0, size * punkSize, size * punkSize)
-                ctx.drawImage(cat, 50, 0, size, size, 87, 460, size * catSize, size * catSize)
-                ctx.beginPath()
-                ctx.rect(0, size - 80, size, size)
-                ctx.fillStyle = "white"
-                ctx.fill()
+                    ctx.drawImage(maskImage, 0, 0)
+                    ctx.drawImage(punk, 0, 80, size, size, 230, 0, size * punkSize, size * punkSize)
+                    ctx.drawImage(cat, 50, 0, size, size, 87, 460, size * catSize, size * catSize)
+                    ctx.beginPath()
+                    ctx.rect(0, size - 80, size, size)
+                    ctx.fillStyle = "white"
+                    ctx.fill()
 
+                }
             }
         }
 
 
 
-        function drawMaskedImage(img, mask, { scale = 1, x = 0, y = 0 } = {}) {
+        function drawMaskedImage(img, mask, { scale = 1, x = 0, y = 0 } = {}, wrapper) {
             return new Promise(resolve => {
 
                 let canvasNames = ["cat", "mask", "diff", "res"]
@@ -377,7 +396,6 @@
 
                 canvasNames.forEach(name => {
                     canvas = document.createElement("canvas")
-                    // document.body.appendChild(canvas)
                     canvas.width = size
                     canvas.height = size
 
@@ -385,24 +403,38 @@
                         canvas,
                         ctx: canvas.getContext("2d")
                     }
+
+
+                    if (debug && wrapper) {
+                        let heading = document.createElement("h3")
+                        heading.innerText = name
+                        wrapper.appendChild(heading)
+                        wrapper.appendChild(canvas)
+                    }
                 })
 
                 canvasMap["cat"].ctx.drawImage(img, 0, 0)
                 canvasMap["mask"].ctx.drawImage(mask, 0, 0)
 
-
+                let maskData = canvasMap["mask"].ctx.getImageData(0, 0, size, size)
                 let catData = canvasMap["cat"].ctx.getImageData(0, 0, size, size)
 
 
                 let diffData = canvasMap["diff"].ctx.createImageData(size, size)
                 for (let i = 0; i < diffData.data.length; i += 4) {
-                    let gray = (catData.data[i + 1] + catData.data[i + 2] + catData.data[i + 3]) / 3
-                    let col = (gray < 200) ? 0 : 255
+                    let col = [0, 0, 0, 1]
+                    let avg = 0
+                    for (let channel = 0; channel < 3; channel++) {
+                        col[channel] = Math.abs(catData.data[i + channel] - maskData.data[i + channel])
+                        avg += col[channel] / 3
+                    }
+
+                    let mask = (avg > 30) ? 255 : 0
                     diffData.data[i + 1] = catData.data[i + 1]
 
-                    diffData.data[i + 0] = col
-                    diffData.data[i + 1] = col
-                    diffData.data[i + 2] = col
+                    diffData.data[i + 0] = mask
+                    diffData.data[i + 1] = mask
+                    diffData.data[i + 2] = mask
 
                     diffData.data[i + 3] = 255
                 }
@@ -412,19 +444,10 @@
                 let resData = canvasMap["res"].ctx.createImageData(size, size)
                 for (let i = 0; i < resData.data.length; i += 4) {
 
-                    if (diffData.data[i] < 80) {
-                        resData.data[i + 0] = catData.data[i + 0]
-                        resData.data[i + 1] = catData.data[i + 1]
-                        resData.data[i + 2] = catData.data[i + 2]
-                        resData.data[i + 3] = 255
-
-                    } else {
-                        resData.data[i + 0] = 0
-                        resData.data[i + 1] = 0
-                        resData.data[i + 2] = 0
-                        resData.data[i + 3] = 0
-                    }
-
+                    resData.data[i + 0] = catData.data[i + 0]
+                    resData.data[i + 1] = catData.data[i + 1]
+                    resData.data[i + 2] = catData.data[i + 2]
+                    resData.data[i + 3] = diffData.data[i + 0]
                 }
 
                 canvasMap["res"].ctx.putImageData(resData, 0, 0)
